@@ -1,0 +1,66 @@
+services:
+  app:
+    # Sur le serveur : soit on build localement (`docker compose up -d --build`),
+    # soit on récupère l'image publiée par GitHub Actions (`docker compose pull && docker compose up -d`).
+    image: ${BIODOMES_IMAGE:-biodomes:local}
+    build: .
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # L'app n'est joignable que par Caddy (réseau Docker interne) : on peut faire confiance aux X-Forwarded-*
+      ReverseProxy__TrustForwardedHeaders: "true"
+      Seed__DemoUsers: ${SEED_DEMO_USERS:-true}
+      Seed__AdminPassword: ${ADMIN_PASSWORD:?ADMIN_PASSWORD doit être défini dans .env}
+      Seed__DemoPassword: ${DEMO_PASSWORD:?DEMO_PASSWORD doit être défini dans .env}
+      SmtpSettings__Host: ${SMTP_HOST:-}
+      SmtpSettings__Port: ${SMTP_PORT:-587}
+      SmtpSettings__FromEmail: ${SMTP_FROM:-}
+      SmtpSettings__Username: ${SMTP_USERNAME:-}
+      SmtpSettings__Password: ${SMTP_PASSWORD:-}
+    volumes:
+      - biodomes-data:/app/data
+      - biodomes-images:/app/wwwroot/images
+    expose:
+      - "8080"
+    # Pour tester sans Caddy, décommenter puis ouvrir http://localhost:8080
+    # ports:
+    #   - "8080:8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      # Nom de domaine pointant vers le serveur -> certificat Let's Encrypt automatique.
+      # "localhost" -> certificat local auto-signé (tests).
+      DOMAIN: ${DOMAIN:-localhost}
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  biodomes-data:
+  biodomes-images:
+  caddy-data:
+  caddy-config:
+
+# Config Caddy intégrée au compose (pas de bind mount de fichier : évite les soucis
+# de partage de fichiers de Docker Desktop sous Windows). "$$" = "$" littéral.
+configs:
+  caddyfile:
+    content: |
+      {$$DOMAIN} {
+      	encode zstd gzip
+      	reverse_proxy app:8080 {
+      		# Évite qu'un client ne modifie le PathBase via ReverseProxyLinksMiddleware
+      		header_up -X-Forwarded-Prefix
+      	}
+      }

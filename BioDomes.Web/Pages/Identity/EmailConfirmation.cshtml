@@ -1,0 +1,16 @@
+@page
+@model EmailConfirmationModel
+@{
+    ViewData["Title"] = "Confirmation";
+    Layout = "_LayoutSimple";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <div class="card shadow-sm p-5">
+            <div class="mb-3 text-success" style="font-size: 3.5rem;">&#10003;</div>
+            <h2 class="mb-4">@Model.Message</h2>
+            <a asp-page="/Index" class="btn btn-primary btn-lg">Ok</a>
+        </div>
+    </div>
+</div>

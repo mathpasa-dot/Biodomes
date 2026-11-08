@@ -1,0 +1,67 @@
+﻿@model BiomeCommonForm
+@* 
+    Expected model properties:
+      Model.Input            — SpeciesInputModel (bound properties)
+      Model.SpeciesTypes     — IEnumerable<SpeciesType>
+      Model.Regimes          — IEnumerable<AlimentationRegime>
+    
+    ViewData["IsEdit"]       — bool, passed by the calling page
+*@
+
+@{
+    var isEdit = (bool)(ViewData["IsEdit"] ?? false);
+    var headerClass = isEdit ? "bg-warning text-dark" : "bg-success text-white";
+    var title = isEdit ? "Éditer un biome" : "Ajouter un biome";
+    var submitLabel = isEdit ? "Sauvegarder" : "Ajouter";
+    var submitClass = isEdit ? "btn-warning" : "btn-success";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+
+                <div class="card-header @headerClass">
+                    <h4 class="mb-0">@title</h4>
+                </div>
+
+                <div class="card-body">
+
+                    <form method="post" enctype="multipart/form-data">
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Name" class="form-label"></label>
+                            <input asp-for="Input.Name" class="form-control" autofocus/>
+                            <span asp-validation-for="Input.Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Temperature" class="form-label"></label>
+                            <input asp-for="Input.Temperature" class="form-control" step="0.01"/>
+                            <span asp-validation-for="Input.Temperature" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Humidity" class="form-label"></label>
+                            <input asp-for="Input.Humidity" class="form-control" step="0.01"/>
+                            <span asp-validation-for="Input.Humidity" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-page="/Biomes/Index" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn @submitClass">@submitLabel</button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

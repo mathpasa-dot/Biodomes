@@ -1,0 +1,135 @@
+@using BioDomes.Infrastructures.Model
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"] - BioDomes.Web</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/paragraph-custom-style.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/title-custom-style.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/BioDomes.Web.styles.css" asp-append-version="true"/>
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container">
+            <img src="@Url.Content("~/images/build-in/BioDome.png")"
+                 alt="avatar"
+                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;"/>
+            <a class="navbar-brand" asp-area="" asp-page="/Index">BioDomes : Terrarium Zero</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-page="/Biomes/Explore">Explorer</a>
+                    </li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Species/Index">Espèces</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Equipments/Index">Équipements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Biomes/Index">Biomes</a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area=""
+                                   asp-page="/Materials/AddMaterial">Matériaux</a>
+                            </li>
+                        }
+                    }
+                </ul>
+
+                <ul class="navbar-nav">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var currentUser = await UserManager.GetUserAsync(User);
+                        var avatarPath = string.IsNullOrEmpty(currentUser?.UserAvatar)
+                            ? Url.Content("~/images/avatars/default.jpeg")
+                            : Url.Content("~" + currentUser.UserAvatar);
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark d-flex align-items-center gap-2"
+                               href="#" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="@avatarPath"
+                                     alt="avatar"
+                                     style="width: 28px; height: 28px; object-fit: cover; border-radius: 50%;"/>
+                                @User.Identity.Name
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <span class="badge bg-danger ms-1">Admin</span>
+                                }
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-page="/Identity/Index">Profil</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-page="/Identity/ChangePassword">Changer mot
+                                        de passe</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-page="/Identity/Email">Email</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider"/>
+                                </li>
+                                <li>
+                                    <form method="post" asp-area="" asp-page="/Identity/Logout">
+                                        <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Identity/Login">Connexion</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Identity/Register">Inscription</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2025 - BioDomes.Web - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+@await RenderSectionAsync("Scripts", false)
+</body>
+</html>

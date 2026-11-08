@@ -1,0 +1,33 @@
+# Build
+bin/
+obj/
+/packages/
+publish/
+
+# IDE
+.idea/
+.vs/
+.vscode/
+*.user
+*.DotSettings.user
+riderModule.iml
+/_ReSharper.Caches/
+
+# Secrets / environnement
+.env
+appsettings.*.local.json
+secrets.json
+
+# Données locales (base SQLite, clés Data Protection)
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+BioDomes.Web/Data/
+
+# Uploads des utilisateurs (on ne garde que les images par défaut)
+BioDomes.Web/wwwroot/images/avatars/*
+!BioDomes.Web/wwwroot/images/avatars/default.jpeg
+
+# Divers
+Claude outputs/

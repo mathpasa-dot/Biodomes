@@ -1,0 +1,21 @@
+﻿@page
+@model LogoutModel
+@{
+    ViewData["Title"] = "Déconnexion";
+}
+
+<div class="text-center mt-5">
+    <h1>@ViewData["Title"]</h1>
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <p>Vous êtes encore connecté. Cliquez ci-dessous pour vous déconnecter.</p>
+        <form method="post">
+            <button type="submit" class="btn btn-danger">Se déconnecter</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-success">Vous avez été déconnecté avec succès.</p>
+        <a asp-page="/Index" class="btn btn-primary mt-2">Retour à l'accueil</a>
+    }
+</div>

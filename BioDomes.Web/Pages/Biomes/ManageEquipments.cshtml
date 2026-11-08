@@ -1,0 +1,182 @@
+﻿@page "/ManageEquipments/{slug:kebab}"
+@using BioDomes.Domains
+@model ManageEquipments
+
+@section Styles {
+    <style>
+        p {
+            background: none;
+            border: none;
+        }
+    </style>
+}
+
+<h1 class="display-5 text-center mb-4">Equipements - @Model.Biome.Name</h1>
+
+<div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+    <a asp-page="./Index" class="btn btn-sm btn-secondary">← Liste biomes</a>
+    <a asp-page="./Dashboard" asp-route-slug="@Model.Slug" class="btn btn-sm btn-primary">Dashboard</a>
+    <a asp-page="./EditChain" asp-route-slug="@Model.Slug" class="btn btn-sm btn-secondary">Prédations</a>
+</div>
+
+<div class="mx-auto" style="max-width: 720px;">
+    <div class="d-flex justify-content-end mb-2">
+        <button type="button"
+                class="btn btn-success px-4"
+                data-bs-toggle="modal"
+                data-bs-target="#modalAddEquip">
+            + Ajouter un équipement
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form method="post" asp-page-handler="UpdateEquipQuantities">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0" style="table-layout: fixed;">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Equipement</th>
+                        <th style="width: 110px;">Quantité</th>
+                        <th style="width: 110px;"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var equip in Model.Biome.Equipments)
+                    {
+                        <tr>
+                            <td class="align-middle">@equip.Key.Name</td>
+                            <td>
+                                <input type="number"
+                                       name="quantities[@equip.Key.Name]"
+                                       value="@equip.Value"
+                                       min="1"
+                                       class="form-control form-control-sm"/>
+                            </td>
+                            <td class="align-middle text-end">
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDeleteEquip"
+                                        data-equip-name="@equip.Key.Name"
+                                        data-equip-kebab="@equip.Key.Name.ToKebabCase()">
+                                    Supprimer
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <span class="text-muted small">@Model.Biome.Equipments.Count équipement@(Model.Biome.Population.Count > 1 ? "s" : "")</span>
+                <button type="submit" class="btn btn-sm btn-primary">Sauvegarder les quantités</button>
+            </div>
+        </div>
+    </form>
+</div>    
+
+@* Formulaires de suppression hors du tableau *@
+@foreach (var equip in Model.Biome.Equipments)
+{
+    <form id="delete-equip-@equip.Key.Name.ToKebabCase()"
+          method="post"
+          asp-page-handler="DeleteEquip">
+        <input type="hidden" name="equipName" value="@equip.Key.Name"/>
+    </form>
+}
+
+@* Modale — ajouter un equipement *@
+<div class="modal fade" id="modalAddEquip" tabindex="-1" aria-labelledby="modalAddEquipLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalAddEquipLabel">Ajouter un équipement</h5>
+            </div>
+            <form method="post" asp-page-handler="AddEquip">
+                <div class="modal-body d-flex flex-column gap-3">
+                    <div class="d-flex gap-2 align-items-end">
+                        <div class="flex-grow-1">
+                            <label class="form-label">Equipement</label>
+                            <select name="equipName" class="form-select">
+                                @foreach (var s in Model.AvailableEquipToAdd)
+                                {
+                                    <option value="@s.Name">@s.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Quantité</label>
+                            <input type="number" name="quantity" value="1" min="1"
+                                   class="form-control" style="width: 80px;"/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success">Ajouter</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modale — confirmer la suppression *@
+<div class="modal fade" id="modalDeleteEquip" tabindex="-1" aria-labelledby="modalDeleteEquipLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDeleteEquipLabel">Supprimer cet équipement ?</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">
+                    Supprimer <strong id="deleteEquipName"></strong> du biome ?
+                </p>
+                <p class="text-muted small mb-0">
+                    L'équipement reste disponible dans le catalogue.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit"
+                        id="deleteEquipSubmit"
+                        class="btn btn-danger">
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Injecte le nom de l'équipement dans la modale de suppression
+        // et soumet le bon formulaire hidden
+        const deleteModal = document.getElementById('modalDeleteEquip');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            const name = btn.getAttribute('data-equip-name');
+            const kebab = btn.getAttribute('data-equip-kebab');
+
+            document.getElementById('deleteEquipName').textContent = name;
+            document.getElementById('deleteEquipSubmit').setAttribute('form', 'delete-equip-' + kebab);
+        });
+    </script>
+}

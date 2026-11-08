@@ -1,0 +1,84 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Inscription";
+    Layout = "_LayoutSimple";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
+            <h2>Créer un compte</h2>
+            <hr/>
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.UserName" class="form-control" autocomplete="off" aria-required="true"
+                       placeholder="Henry"/>
+                <label asp-for="Input.UserName">Nom</label>
+                <span asp-validation-for="Input.UserName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true"
+                       placeholder="name@example.com"/>
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true"/>
+                <label asp-for="Input.Password">Mot de passe</label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password"
+                       aria-required="true"/>
+                <label asp-for="Input.ConfirmPassword">Confirmation</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.DateOfBirth" type="text" class="form-control" placeholder="AAAA-MM-JJ"/>
+                <label asp-for="Input.DateOfBirth">Date de naissance</label>
+                <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ResearchTeam" class="form-control" autocomplete="off" aria-required="true"
+                       placeholder="BiodomeTeam"/>
+                <label asp-for="Input.ResearchTeam">Équipe de recherche</label>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.UserAvatar" class="form-label"></label>
+                <div class="mb-2">
+                    <img
+                        src="@(string.IsNullOrEmpty(Model.Input.CurrentAvatarPath)
+                                 ? Url.Content("~/images/avatars/default.jpeg")
+                                 : Url.Content("~" + Model.Input.CurrentAvatarPath))"
+                        alt="Current image"
+                        style="max-height: 150px; object-fit: cover;" class="img-thumbnail" loading="lazy"/>
+                    <p class="text-muted small mt-1">Image actuellement utilisée</p>
+                </div>
+                <input asp-for="Input.UserAvatar" type="file" class="form-control"/>
+                <span asp-validation-for="Input.UserAvatar" class="text-danger"></span>
+            </div>
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Vérification</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <script>
+        flatpickr("#Input_DateOfBirth", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            minDate: "1900-01-01",
+            locale: "fr"
+        });
+    </script>
+}

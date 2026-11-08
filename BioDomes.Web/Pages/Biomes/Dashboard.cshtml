@@ -1,0 +1,317 @@
+@page "/Dashboard/{slug:kebab}"
+@model DashboardModel
+
+@{
+    ViewData["Title"] = $"Dashboard — {Model.Biome.Name}";
+    var scoreColor = Model.Score.Total >= 70 ? "#2e9e6b" : Model.Score.Total >= 40 ? "#e07b39" : "#c0392b";
+    var scoreBg = Model.Score.Total >= 70 ? "success" : Model.Score.Total >= 40 ? "warning" : "danger";
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="text-center mb-3">
+        <h1 class="display-5">Dashboard — @Model.Biome.Name</h1>
+        <a asp-page="./Index" class="btn btn-sm btn-secondary">← Liste biomes</a>
+        <a asp-page="./ManageSpecies" asp-route-slug="@Model.Slug" class="btn btn-sm btn-primary">Gérer
+            espèces</a>
+        <a asp-page="./EditChain" asp-route-slug="@Model.Slug" class="btn btn-sm btn-secondary">Prédations</a>
+    </div>
+}
+
+<!-- Résumé -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100 p-3 text-center">
+            <h6 class="text-muted mb-1">Score global</h6>
+            <div class="display-4 fw-bold mb-2" id="score-total" style="color: @scoreColor">
+                @Model.Score.Total<small class="fs-5 fw-normal">&thinsp;/ 100</small>
+            </div>
+            <div class="progress mb-3" style="height: 10px;">
+                <div class="progress-bar bg-@scoreBg" style="width: @Model.Score.Total%;"></div>
+            </div>
+
+            <div class="d-flex justify-content-around border-top pt-2">
+                <div>
+                    <div class="text-muted" style="font-size: 0.7rem;">Équilibre</div>
+                    <div class="fw-semibold text-secondary" id="score-balance">
+                        @Model.Score.BalanceScore<small class="fw-normal">&thinsp;/ 100</small>
+                    </div>
+                </div>
+                <div class="border-start"></div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.7rem;">Diversité</div>
+                    <div class="fw-semibold text-secondary" id="score-diversity">
+                        @Model.Score.DiversityScore<small class="fw-normal">&thinsp;/ 100</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <h6 class="text-muted">Paramètres</h6>
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Température</td>
+                    <td><strong>@Model.Biome.Temperature °C</strong></td>
+                </tr>
+                <tr>
+                    <td>Humidité</td>
+                    <td><strong>@Model.Biome.Moisture g/m³</strong></td>
+                </tr>
+                <tr>
+                    <td>Espèces</td>
+                    <td><strong id="stat-species">@Model.Biome.Population.Count</strong></td>
+                </tr>
+                <tr>
+                    <td>Relations proies/préd.</td>
+                    <td><strong id="stat-predations">@Model.Biome.Predations.Count</strong></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-3" id="balance-card">
+            <h6 class="text-muted">Équilibre alimentaire</h6>
+            <div id="balance-comments">
+                @if (!Model.BalanceComments.Any())
+                {
+                    <p class="text-success mb-0"><strong>✓ Biome équilibré</strong></p>
+                }
+                else
+                {
+                    <ul class="small mb-0 ps-3" style="max-height: 120px; overflow-y: auto;">
+                        @foreach (var c in Model.BalanceComments)
+                        {
+                            <li class="text-warning">@c.Warning</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<select id="timeline-select" class="form-select mb-2">
+    <option value="">Choisir un événement</option>
+</select>
+
+<!-- Onglets graphiques -->
+<ul class="nav nav-tabs mb-3" id="chart-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-types-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-types" type="button">
+            Par type
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-regime-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-regime" type="button">
+            Régimes alimentaires
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-trophic-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-trophic" type="button">
+            Niveaux trophiques
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-network-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-network" type="button">
+            Réseau trophique
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content pb-4">
+
+    <!-- Tab 1 : Par type -->
+    <div class="tab-pane fade show active" id="tab-types" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Espèces par type</h5>
+            <div class="d-flex gap-2 align-items-center">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Mode d'affichage">
+                    <button type="button" class="btn btn-outline-primary active" id="btn-mode-count"
+                            onclick="setBarMode('count')">Par quantité
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-mode-mass"
+                            onclick="setBarMode('mass')">Par masse (kg)
+                    </button>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary"
+                        onclick="exportChart('chart-bar','especes-par-type')">⬇ Exporter
+                </button>
+            </div>
+        </div>
+        <div id="legend-bar" class="mb-2 d-flex flex-wrap gap-2"></div>
+        <div style="height: 380px; position: relative;">
+            <canvas id="chart-bar"></canvas>
+        </div>
+        <div id="bar-summary" class="mt-2 d-flex flex-wrap gap-1"></div>
+        <div id="detail-bar" class="mt-2 alert alert-info d-none"></div>
+    </div>
+
+    <!-- Tab 2 : Régimes -->
+    <div class="tab-pane fade" id="tab-regime" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Régimes alimentaires</h5>
+            <div class="d-flex gap-2 align-items-center">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Mode donut">
+                    <button type="button" class="btn btn-outline-primary active" id="btn-donut-count"
+                            onclick="setDoughnutMode('count')">Par individus
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-donut-mass"
+                            onclick="setDoughnutMode('mass')">Par masse (kg)
+                    </button>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary"
+                        onclick="exportChart('chart-doughnut','regimes-alimentaires')">⬇ Exporter
+                </button>
+            </div>
+        </div>
+        <div id="legend-doughnut" class="mb-2 d-flex flex-wrap gap-2"></div>
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div style="height: 350px; position: relative;">
+                    <canvas id="chart-doughnut"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div id="detail-doughnut">
+                    <p class="text-muted">Cliquez sur un segment pour voir les espèces de ce régime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3 : Niveaux trophiques -->
+    <div class="tab-pane fade" id="tab-trophic" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Niveaux trophiques</h5>
+            <button class="btn btn-sm btn-outline-secondary"
+                    onclick="exportChart('chart-radar','niveaux-trophiques')">⬇ Exporter
+            </button>
+        </div>
+        <div id="legend-radar" class="mb-2 d-flex flex-wrap gap-2"></div>
+        <div style="height: 420px; position: relative;">
+            <canvas id="chart-radar"></canvas>
+        </div>
+    </div>
+
+    <!-- Tab 4 : Réseau trophique D3 -->
+    <div class="tab-pane fade" id="tab-network" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Réseau trophique</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="exportNetwork()">⬇ Exporter</button>
+        </div>
+        <div id="legend-network" class="mb-2 d-flex flex-wrap gap-2"></div>
+        <div id="network-container"
+             style="height: 500px; border: 1px solid #dee2e6; border-radius: 8px;
+                    background: #fafafa; position: relative; overflow: hidden;">
+        </div>
+        <div id="detail-network" class="mt-3 alert alert-info d-none"></div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script>
+        window.BIOME_DATA = @Html.Raw(Model.BiomeDataJson);
+    </script>
+    <script src="~/js/biome-charts.js" asp-append-version="true"></script>
+    <script src="~/js/biome-network.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            window.BIOME_DATA_INITIAL = window.BIOME_DATA;
+            initBiomeCharts(window.BIOME_DATA);
+            initTimelineSelect(window.BIOME_DATA.timelineEvents);
+
+            // Le réseau D3 nécessite un conteneur visible pour calculer ses dimensions
+            const networkTabBtn = document.getElementById('tab-network-btn');
+            let networkReady = false;
+            networkTabBtn.addEventListener('shown.bs.tab', function () {
+                if (!networkReady) {
+                    initBiomeNetwork(window.BIOME_DATA);
+                    networkReady = true;
+                }
+            });
+        });
+    </script>
+    <script>
+        
+        
+        window.BiomeCharts = {
+            updateBarChart,
+            updateDoughnutChart,
+            updateRadarChart,
+            updateNetwork
+        };
+        
+        const BIOME_STATE_BASE_URL = '@Url.Page(null, "BiomeState", new { slug = Model.Slug })';
+
+        async function loadBiomeAtDate(dateStr) {
+            const url = `${BIOME_STATE_BASE_URL}&date=${encodeURIComponent(dateStr)}`;
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const data = await res.json();
+            updateCharts(data);
+        }
+        const balanceEl = document.getElementById('balance-comments');
+
+        function updateCharts(data) {
+            window.BIOME_DATA = data;
+            
+            if (data.score) {
+                document.getElementById('score-total').innerHTML =
+                    `${data.score.total}<small class="fs-5 fw-normal">&thinsp;/ 100</small>`;
+                document.getElementById('score-balance').innerHTML =
+                    `${data.score.balanceScore}<small class="fw-normal">&thinsp;/ 100</small>`;
+                document.getElementById('score-diversity').innerHTML =
+                    `${data.score.diversityScore}<small class="fw-normal">&thinsp;/ 100</small>`;
+            }
+
+            // Stats
+            document.getElementById('stat-species').textContent = data.species.length;
+            document.getElementById('stat-predations').textContent = data.predations.length;
+
+            // Balance comments
+            const balanceEl = document.getElementById('balance-comments');
+            if (data.balanceComments && data.balanceComments.length === 0) {
+                balanceEl.innerHTML = `<p class="text-success mb-0"><strong>✓ Biome équilibré</strong></p>`;
+            } else if (data.balanceComments) {
+                balanceEl.innerHTML = `<ul class="small mb-0 ps-3" style="max-height: 120px; overflow-y: auto;">
+                    ${data.balanceComments.map(w => `<li class="text-warning">${w}</li>`).join('')}
+                </ul>`;
+            }
+            
+            window.BiomeCharts.updateBarChart(data.species);
+            window.BiomeCharts.updateDoughnutChart(data.species);
+            window.BiomeCharts.updateRadarChart(data.species);
+            window.BiomeCharts.updateNetwork(data.predations);
+        }
+
+        function initTimelineSelect(events){
+            const select = document.getElementById("timeline-select");
+            if (!select) return;
+
+            select.innerHTML = `<option value="">Choisir un événement</option>` + events.map((e) => {
+                const rawTs = e.timestamp ?? e.Timestamp;
+                const utcTs = rawTs.endsWith('Z') ? rawTs : rawTs + 'Z';
+                const description = e.description ?? e.Description;
+                return `<option value="${utcTs}">${new Date(utcTs).toLocaleString()} — ${description}</option>`;
+            }).join("");
+
+            select.addEventListener("change", async (e) => {
+                if (!e.target.value) {
+                    // Recharger l'état actuel
+                    updateCharts(window.BIOME_DATA_INITIAL);
+                    return;
+                }
+                await loadBiomeAtDate(e.target.value);
+            });
+        }
+    </script>
+}

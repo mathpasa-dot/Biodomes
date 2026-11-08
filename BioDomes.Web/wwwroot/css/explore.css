@@ -1,0 +1,117 @@
+/* =========================
+   CARROUSEL BIOMES
+========================= */
+
+.biome-carousel {
+    margin-bottom: 2rem;
+}
+
+.biome-carousel-header {
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 0; /* important pour aligner avec les cards */
+}
+
+.biome-carousel-track-outer {
+    overflow: hidden;
+}
+
+.biome-carousel-track {
+    display: flex;
+    gap: 16px;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    align-items: stretch;
+}
+
+.biome-carousel-slide {
+    flex: 0 0 calc((100% - 32px) / 3);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* La card doit remplir la hauteur de son slide */
+.biome-carousel-slide .biome-carousel-card {
+    flex: 1;
+    max-width: none;
+    margin-bottom: 0;
+}
+
+/* =========================
+   NAVIGATION
+========================= */
+
+.biome-carousel-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding: 0 0.25rem;
+}
+
+.biome-carousel-arrows {
+    display: flex;
+    gap: 8px;
+}
+
+.biome-carousel-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.biome-carousel-btn:hover:not(:disabled) {
+    background-color: #f0f0f0;
+    border-color: #999;
+}
+
+.biome-carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.biome-carousel-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.biome-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #ccc;
+    transition: background-color 0.2s, width 0.2s;
+}
+
+.biome-dot.active {
+    width: 20px;
+    border-radius: 4px;
+    background-color: #555;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+    .biome-carousel-slide {
+        flex: 0 0 calc((100% - 16px) / 2);
+    }
+}
+
+@media (max-width: 576px) {
+    .biome-carousel-slide {
+        flex: 0 0 100%;
+    }
+}

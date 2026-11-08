@@ -1,0 +1,167 @@
+@using BioDomes.Domains
+@model BiomeCardViewModel
+
+@{
+    var collapseSpeId = $"pop-{(Model.Biome.Name + "species").ToKebabCase()}";
+    var collapseEquipId = $"pop-{(Model.Biome.Name + "Equip").ToKebabCase()}";
+    
+    // Interpolation température → couleur RGB
+    // Paliers : ≤-20 bleu froid, 0 bleu-cyan, 15 vert, 28 orange, ≥40 rouge
+    double t = Math.Clamp((double)Model.Biome.Temperature, -20, 40);
+    (double temp, int r, int g, int b)[] stops = {
+        (-20, 26,  112, 181),
+        (  0, 74,  168, 192),
+        ( 15, 45,  106,  79),
+        ( 28, 196, 120,  40),
+        ( 40, 181,  58,  26),
+    };
+    var lo = stops[0];
+    var hi = stops[^1];
+    for (int i = 0; i < stops.Length - 1; i++) {
+        if (t >= stops[i].temp && t <= stops[i + 1].temp) { lo = stops[i]; hi = stops[i + 1]; break; }
+    }
+    double ratio = (hi.temp == lo.temp) ? 0 : (t - lo.temp) / (hi.temp - lo.temp);
+    int cr = (int)Math.Round(lo.r + ratio * (hi.r - lo.r));
+    int cg = (int)Math.Round(lo.g + ratio * (hi.g - lo.g));
+    int cb = (int)Math.Round(lo.b + ratio * (hi.b - lo.b));
+    string headerColor = $"rgb({cr},{cg},{cb})";
+}
+
+<div class="card mb-3 shadow-sm biome-carousel-card">
+
+    <div class="card-header d-flex justify-content-between align-items-center"
+         style="background-color: @headerColor; border-bottom: none;">
+        <h5 class="mb-0 text-white">@Model.Biome.Name</h5>
+        <span style="background: rgba(255,255,255,0.2); color: white;
+                 font-size: 0.75rem; font-weight: 600;
+                 padding: 3px 10px; border-radius: 20px;">
+            ⭐ @Model.Score / 100
+        </span>
+    </div>
+
+    <div class="card-body p-3">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex gap-3 text-muted small mb-2">
+                <span>🌡 @Model.Biome.Temperature °C — @Model.State</span>
+                <span>💧 @Model.Biome.Moisture g/m³</span>
+            </div>
+            
+            <span class="badge @(Model.IsBalanced ? "bg-success" : "bg-danger") pt-1 mb-2">
+                @(Model.IsBalanced ? "✓ Équilibré" : "✗ Déséquilibré")
+            </span>
+        </div>
+        
+
+        <div class="d-flex flex-column align-items-start">
+            @if (Model.Biome.Population.Any())
+            {
+                <button class="btn btn-sm btn-link p-0 text-decoration-none mb-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#@collapseSpeId"
+                        aria-expanded="false">
+                    🐾 @Model.Biome.Population.Count espèces (@Model.TotalSpePop individus) ▾
+                </button>
+
+                <div class="collapse w-100" id="@collapseSpeId">
+                    @foreach (var entry in Model.Biome.Population.OrderByDescending(e => e.Value))
+                    {
+                        var pct = @Model.TotalSpePop > 0 ? (int)Math.Round(entry.Value * 100.0 / @Model.TotalSpePop) : 0;
+                        <div class="mb-1">
+                            <div class="d-flex justify-content-between small">
+                                <span>@entry.Key.Name</span>
+                                <span class="text-muted">@entry.Value ind.</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" style="width: @pct%; background-color: @headerColor;"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small mb-2">Aucune espèce dans ce biome.</p>
+            }
+
+            @if (Model.Biome.Equipments.Any())
+            {
+                <button class="btn btn-sm btn-link p-0 text-decoration-none mb-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#@collapseEquipId"
+                        aria-expanded="false">
+                    🧰 @Model.Biome.Equipments.Count équipements (@Model.TotalEquipPop individus) ▾
+                </button>
+
+                <div class="collapse w-100" id="@collapseEquipId">
+                    @foreach (var entry in Model.Biome.Equipments.OrderByDescending(e => e.Value))
+                    {
+                        var pct = @Model.TotalEquipPop > 0 ? (int)Math.Round(entry.Value * 100.0 / @Model.TotalEquipPop) : 0;
+                        <div class="mb-1">
+                            <div class="d-flex justify-content-between small">
+                                <span>@entry.Key.Name</span>
+                                <span class="text-muted">@entry.Value ind.</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" style="width: @pct%; background-color: @headerColor;"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small mb-2">Aucune équipement dans ce biome.</p>
+            }
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        
+        <div class="biome-actions mt-3">
+            <div class="btn-group">
+                <a class="btn btn-outline-primary btn-sm" asp-page="./Dashboard" asp-route-slug="@Model.Biome.Name">
+                    📊 Dashboard
+                </a>
+                @if (Model.CanManage)
+                {
+                    <a class="btn btn-outline-primary btn-sm" asp-page="./EditChain" asp-route-slug="@Model.Biome.Name">🐺 Prédations</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-page="./ManageSpecies" asp-route-slug="@Model.Biome.Name">🐾 Espèces</a>
+                }
+            </div>
+            @if (Model.CanManage)
+            {
+                <div class="btn-group">
+                    <a class="btn btn-outline-secondary btn-sm" asp-page="./ManageEquipments" asp-route-slug="@Model.Biome.Name">🧰</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (Model.CanManage)
+    {
+        <div class="card-footer bg-transparent d-flex gap-2">
+            <a asp-page="./EditBiome"
+               asp-route-slug="@Model.Biome.Name"
+               class="btn btn-sm btn-primary">Modifier</a>
+
+            <form method="post" asp-page="/Biomes/Index"
+                  asp-page-handler="Delete"
+                  asp-route-slug="@Model.Biome.Name"
+                  class="d-inline">
+                <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+            </form>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .biome-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+}

@@ -1,0 +1,147 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Page d'accueil";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" />
+}
+
+<!-- ===================== BIODOME ===================== -->
+<section class="biodome-card section-split">
+
+    <h1 class="white-text">BioDomes - Terrarium zéro</h1>
+
+    <div class="biodome-content">
+
+        <p class="biodome-description">
+            À la suite de modèles climatiques convergents indiquant une probabilité croissante
+            d’effondrement écosystémique global, les chercheurs du monde entier ont récemment manifestés leur intérêt
+            vis à vis d'une plateforme en ligne permettant la simulation de différents biomes.
+            BioDomes est la solution proposée par la haute école d'Helmo à ce besoin.
+        </p>
+
+        <article class="biodome-four">
+            <div class="biodome-stat">
+                <div class="num">@Model.ActiveCount</div>
+                <div class="lbl">biomes actifs</div>
+            </div>
+
+            <div class="biodome-stat">
+                <div class="num">@Model.SpeciesCount</div>
+                <div class="lbl">espèces</div>
+            </div>
+
+            <div class="biodome-stat">
+                <div class="num">@Model.AverageScore</div>
+                <div class="lbl">score moyen</div>
+            </div>
+
+            <div class="biodome-stat">
+                <div class="num">@Model.EquipCount</div>
+                <div class="lbl">équipements</div>
+            </div>
+        </article>
+
+    </div>
+    
+    <a asp-page="./Biomes/Explore" class="biodome-more">Voir nos biomes</a>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="feature-card section-split">
+
+    <h2 class="pb-2 white-text">Nos features</h2>
+
+    <div class="feature-grid">
+
+        <article>
+            <h2>Créer et éditer vos animaux</h2>
+            <ul>
+                <li>Nom</li>
+                <li>Régime alimentaire</li>
+                <li>Catégorie</li>
+                <li>Taille</li>
+                <li>Poids</li>
+                <li>Image</li>
+            </ul>
+        </article>
+
+        <article>
+            <h2>Créer vos équipements</h2>
+            <ul>
+                <li>Nom</li>
+                <li>Fuel</li>
+                <li>Matériaux</li>
+                <li>Image</li>
+            </ul>
+        </article>
+
+        <article>
+            <h2>Analyser les biomes</h2>
+            <ul>
+                <li>Régime alimentaire</li>
+                <li>Catégories animales</li>
+                <li>Niveau de prédation</li>
+                <li>Chaîne trophique</li>
+            </ul>
+        </article>
+
+    </div>
+</section>
+
+<!-- ===================== BEST BIOMES ===================== -->
+<section class="best-card section-split">
+
+    <h2 class="white-text">Nos Meilleurs biomes</h2>
+
+    @if (Model.BestBiomes.Any())
+    {
+        <div class="best-grid">
+
+            @foreach (var biome in Model.BestBiomes)
+            {
+                <article>
+                    <h3>@biome.Name</h3>
+                    <ul>
+                        <li>Température : @biome.Temperature C°</li>
+                        <li>Humidité : @biome.Moisture g/m³</li>
+                        <li>Score: @biome.Score / 100</li>
+                        <li>Nbr d'espèces: @biome.SpeciesCount</li>
+                    </ul>     
+                    <a asp-page="./Biomes/Dashboard"
+                       asp-route-slug="@biome.Name"
+                       class="best-more">📊 Visualiser</a>
+                </article>
+            }
+
+        </div>
+    }
+    else
+    {
+        <p class="white-text">Aucun biome disponible pour le moment.</p>
+    }
+
+</section>
+
+<!-- ===================== LAUDOT ===================== -->
+<section class="laudot section-split">
+
+    <div class="laudot-logo">
+        <img src="~/images/build-in/laudot_solution.png" alt="No picture" loading="lazy">
+        <div class="d-flex flex-column align-items-start">
+            <span>Laudot Solutions</span>
+            <span>Directeur du projet</span>
+        </div>
+    </div>
+
+    <article>
+        <h3 class="white-text">Laudot Solutions en bref</h3>
+
+        <p class="laudot-description">
+            Laudot Solutions est une société spécialisée dans le monitoring des écosystèmes à l'échelle mondiale.
+            Notre mission est de rendre accessible nos dernières analyses des biomes au plus grand nombre...
+        </p>
+    </article>
+
+</section>

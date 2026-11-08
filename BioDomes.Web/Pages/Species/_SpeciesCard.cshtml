@@ -1,0 +1,84 @@
+@using BioDomes.Domains
+@using BioDomes.Domains.SpeciesDom
+@model SpeciesCardViewModel
+
+<div class="card shadow-sm @(!Model.Species.IsAvailable ? "border-warning border border-2" : "")">
+    <div class="index-image-container">
+        <img src="~/images/species/default.jpeg"
+             data-src="@(Model.Species.FilePath != null ? Url.Content("~" + Model.Species.FilePath) : "")"
+             alt="@Model.Species.Name"
+             class="lazy-img card-img-top" />
+
+        <div class="index-image-overlay">
+            <h5 class="index-title">@Model.Species.Name</h5>
+        </div>
+
+        @if (!Model.Species.IsAvailable)
+        {
+            <div class="index-ribbon">En attente de validation admin</div>
+        }
+    </div>
+
+    <div class="card-body p-3">
+
+        <!-- Vignettes Type & Régime -->
+        <div class="species-vignettes mb-2">
+            <div class="species-vignette">
+                <div class="species-vignette-label">Type</div>
+                <div class="species-vignette-value">@Model.Species.SpeciesType.ToDisplayString()</div>
+            </div>
+            <div class="species-vignette">
+                <div class="species-vignette-label">Régime</div>
+                <div class="species-vignette-value">@Model.Species.SpeciesRegime.ToDisplayString()</div>
+            </div>
+        </div>
+
+        <!-- Vignettes Taille & Poids -->
+        <div class="species-vignettes">
+            <div class="species-vignette">
+                <div class="species-vignette-label">Taille</div>
+                <div class="species-vignette-value">@Model.Species.Height cm</div>
+            </div>
+            <div class="species-vignette">
+                <div class="species-vignette-label">Poids</div>
+                <div class="species-vignette-value">@Model.Species.Weight kg</div>
+            </div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mt-2"></div>
+
+    </div>
+
+    @if (Model.IsOwner || Model.IsAdmin)
+    {
+        <div class="card-footer bg-transparent d-flex gap-2">
+            <a asp-page="./EditSpecies" asp-route-slug="@Model.Species.Name" class="btn btn-sm btn-primary">
+                Modifier
+            </a>
+            <button type="button"
+                    class="btn btn-sm btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalDeleteSpecies"
+                    data-species-name="@Model.Species.Name"
+                    data-species-kebab="@Model.Species.Name.ToKebabCase()"
+                    data-species-slug="@Model.Species.Name.ToKebabCase()">
+                Supprimer
+            </button>
+            @if (Model.IsAdmin && !Model.Species.IsAvailable)
+            {
+                <form method="post" asp-page="/Species/Index" asp-page-handler="Validate"
+                      asp-route-slug="@Model.Species.Name.ToKebabCase()" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-success">Valider</button>
+                </form>
+            }
+        </div>
+        
+        <form id="delete-species-@Model.Species.Name.ToKebabCase()"
+              method="post"
+              asp-page="/Species/Index"
+              asp-page-handler="Delete"
+              asp-route-slug="@Model.Species.Name.ToKebabCase()">
+        </form>
+    }
+
+</div>

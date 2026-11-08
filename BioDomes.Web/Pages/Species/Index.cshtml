@@ -1,0 +1,114 @@
+@page
+@model SpeciesModel
+
+@{
+    ViewData["Title"] = "Espèces";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/indexes.css" />
+    <style>
+        p {
+            border: none;
+        }
+    </style>
+}
+
+<div class="text-center mb-4">
+    <h1 class="display-4">Espèces</h1>
+    @if (User.IsInRole("Admin"))
+    {
+        <span class="badge bg-danger ms-2">Vue admin — Toutes les espèces</span>
+    }
+</div>
+
+@if (!Model.Species.Any())
+{
+    <div class="alert alert-info mt-3">Aucune espèce disponible.</div>
+}
+
+<div class="index-grid">
+
+    <a asp-page="./AddSpecies" class="index-add-card">
+        <div class="index-add-icon">+</div>
+        <span class="index-add-label">Ajouter une espèce</span>
+    </a>
+
+    @foreach (var species in Model.Species)
+    {
+        <partial name="_SpeciesCard" model="species"/>
+    }
+
+</div>
+
+<div class="modal fade" id="modalDeleteSpecies" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Supprimer cette espèce ?</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">Supprimer <strong id="deleteSpeciesName"></strong> ?</p>
+                
+                @* Le warning biomes impactés, caché par défaut *@
+                <div id="deleteSpeciesWarning" class="alert alert-warning d-none mt-2 mb-0">
+                    <strong>Attention :</strong> cette espèce est assignée à des biomes.
+                    <ul id="deleteSpeciesBiomeList" class="mb-0 mt-1 small"></ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" id="deleteSpeciesSubmit" class="btn btn-danger">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                    }
+                    obs.unobserve(img);
+                }
+            });
+        }, { rootMargin: "1000px" });
+
+        document.querySelectorAll('.lazy-img').forEach(img => observer.observe(img));
+    </script>
+    <script>
+        const biomeImpacts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SpeciesBiomeImpacts, 
+             new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+         ));
+
+        const deleteModal = document.getElementById('modalDeleteSpecies');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            const name = btn.getAttribute('data-species-name');
+            const kebab = btn.getAttribute('data-species-kebab');
+
+            document.getElementById('deleteSpeciesName').textContent = name;
+            document.getElementById('deleteSpeciesSubmit').setAttribute('form', 'delete-species-' + kebab);
+
+            const warning = document.getElementById('deleteSpeciesWarning');
+            const list = document.getElementById('deleteSpeciesBiomeList');
+            warning.classList.add('d-none');
+            list.innerHTML = '';
+
+            const biomes = biomeImpacts[kebab] ?? [];
+            
+            if (biomes.length > 0) {
+                biomes.forEach(b => {
+                    const li = document.createElement('li');
+                    li.textContent = `${b.biomeName} (${b.predationCount} prédation(s) / ${b.presenceCount} individu(s))`;
+                    list.appendChild(li);
+                });
+                warning.classList.remove('d-none');
+            }
+        });
+    </script>
+}

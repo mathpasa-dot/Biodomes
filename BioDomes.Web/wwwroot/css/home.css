@@ -1,0 +1,305 @@
+﻿.white-text {
+    background-color: whitesmoke;
+    padding: 0.5rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+/* =========================
+   GLOBAL SPLIT SECTION SYSTEM
+========================= */
+
+.section-split {
+    position: relative;
+    overflow: hidden;
+    padding: 3rem;
+}
+
+/* couche image diagonale */
+.section-split::after {
+    content: "";
+    position: absolute;
+
+    width: 60%;
+    height: 100%;
+
+    background-size: cover;
+    background-position: center;
+
+    transform: skewX(-12deg);
+    transform-origin: top right;
+    z-index: 0;
+}
+
+/* contenu au-dessus de l’image */
+.section-split > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* =========================
+   BIODOME
+========================= */
+
+.biodome-card {
+    background-color: limegreen;
+}
+
+.biodome-card::after {
+    background-image: url('../images/build-in/green-village.jpg');
+    top: 0;
+    right: 0;
+}
+
+/* layout interne biodome */
+.biodome-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: start;
+}
+
+.biodome-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 2rem;
+}
+
+.biodome-description {
+    flex: 1;
+    font-size: 15px;
+    margin-bottom: 24px;
+    background-color: whitesmoke;
+    border: 1px solid #ccc;
+    padding: 1rem;
+}
+
+.biodome-four {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.biodome-stat {
+    background: whitesmoke;
+    border-radius: 1rem;
+    padding: 14px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.biodome-stat .num {
+    font-size: 22px;
+    font-weight: 500;
+    color: #1D9E75;
+}
+
+.biodome-stat .lbl {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.biodome-more {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: green;
+    border-radius: 15px;
+    color: whitesmoke;
+    border: 1px solid darkgreen;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.biodome-more:hover {
+    text-decoration: none;
+    color: whitesmoke;
+    background-color: darkgreen;
+}
+
+/* =========================
+   FEATURES
+========================= */
+
+.feature-card {
+    background-color: cornflowerblue;
+}
+
+.feature-card::after {
+    background-image: url('../images/build-in/waves.jpg');
+    top: 0;
+    left: 0;
+}
+
+/* grid features */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.feature-card article {
+    padding: 1.5rem;
+    background-color: whitesmoke;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    height: 100%;
+}
+
+/* listes propres */
+.feature-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-card li {
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 6px;
+}
+
+.feature-card li::before {
+    content: "✔";
+    position: absolute;
+    left: 0;
+    color: green;
+}
+
+/* =========================
+   BEST BIOMES
+========================= */
+
+.best-card {
+    background: grey;
+}
+
+.best-card::after {
+    background-image: url('../images/build-in/mountain.jpg');
+    top: 0;
+    right: 0;
+}
+
+.best-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* toujours 3 colonnes */
+    gap: 1.5rem;
+}
+
+.best-card article {
+    padding: 1.5rem;
+    background-color: whitesmoke;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    height: 100%;
+}
+
+.best-card article {
+    padding: 1.5rem;
+    background-color: whitesmoke;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    height: 100%;
+}
+
+/* listes propres */
+.best-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.best-card li {
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 6px;
+}
+
+.best-card li::before {
+    content: "✔";
+    position: absolute;
+    left: 0;
+    color: green;
+}
+
+.best-more {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: dimgrey;
+    border-radius: 15px;
+    color: whitesmoke;
+    border: 1px solid #373b3e;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.best-more:hover {
+    text-decoration: none;
+    color: whitesmoke;
+    background-color: #373b3e;
+}
+
+/* =========================
+   LAUDOT
+========================= */
+
+.laudot {
+    background-color: peru;
+    display: flex;
+    gap: 3rem;
+    align-items: stretch;
+}
+
+.laudot::after {
+    background-image: url('../images/build-in/canyon.jpg');
+    top: 0;
+    left: 0;
+}
+
+/* bloc logo */
+.laudot-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 1px solid #ddd;
+    min-width: 220px;
+}
+
+.laudot img {
+    width: 120px;
+    height: 120px;
+    border-radius: 10px;
+}
+
+.laudot article {
+    max-width: 600px;
+}
+
+.laudot-description {
+    font-size: 15px;
+    background-color: whitesmoke;
+    border: 1px solid #ccc;
+    padding: 1rem;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+    .section-split::after {
+        display: none;
+    }
+
+    .biodome-content,
+    .feature-grid,
+    .laudot {
+        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+}

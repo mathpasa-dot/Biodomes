@@ -1,0 +1,24 @@
+﻿@page "/EditEquipment/{slug:kebab}"
+@model EditEquipmentModel
+@{
+    ViewData["Title"] = "Éditer un équipement";
+    ViewData["IsEdit"] = true;
+}
+
+@if (Model.ImpactedBiomes.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Attention: </strong>Cet équipement est assigné à
+        <strong>@Model.ImpactedBiomes.Count</strong> biome(s).
+        
+        <ul class="mb-0 mt-2">
+            @foreach (var biome in Model.ImpactedBiomes)
+            {
+                <li>
+                    @biome.BiomeName (@biome.PresenceCount individu(s))
+                </li>
+            }
+        </ul>
+    </div>
+}
+<partial name="_EquipmentInputCard" model="Model"/>

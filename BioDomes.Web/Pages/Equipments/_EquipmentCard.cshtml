@@ -1,0 +1,86 @@
+@using BioDomes.Domains
+@model EquipmentCardViewModel
+
+<div class="card shadow-sm @(!Model.Equipment.IsAvailable ? "border-warning border border-2" : "")">
+    <div class="index-image-container">
+        <img src="~/images/equipments/default.jpeg"
+             data-src="@(Model.Equipment.FilePath != null ? Url.Content("~" + Model.Equipment.FilePath) : "")"
+             alt="@Model.Equipment.Name"
+             class="lazy-img card-img-top" />
+
+        <div class="index-image-overlay">
+            <h5 class="index-title">@Model.Equipment.Name</h5>
+        </div>
+
+        @if (!Model.Equipment.IsAvailable)
+        {
+            <div class="index-ribbon">En attente de validation admin</div>
+        }
+    </div>
+    
+    <div class="equipment-flow">
+        <div>
+            <small class="text-muted">Consomme</small>
+            <div class="equipment-tags">
+                @foreach (var consumed in Model.Equipment.Consumed.Take(3))
+                {
+                    <span class="badge bg-light text-dark border">@consumed.Name</span>
+                }
+                @if (Model.Equipment.Consumed.Count > 3)
+                {
+                    <span class="badge bg-secondary">+@((Model.Equipment.Consumed.Count - 3))</span>
+                }
+            </div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <div>
+            <small class="text-muted">Produit</small>
+            <div class="equipment-tags">
+                @foreach (var produced in Model.Equipment.Produced.Take(3))
+                {
+                    <span class="badge bg-light text-dark border">@produced.Name</span>
+                }
+                @if (Model.Equipment.Produced.Count > 3)
+                {
+                    <span class="badge bg-secondary">+@((Model.Equipment.Produced.Count - 3))</span>
+                }
+            </div>
+        </div>
+    </div>
+        
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    
+    @if (Model.IsOwner || Model.IsAdmin)
+    {
+        <div class="card-footer bg-transparent d-flex gap-2">
+            <a asp-page="./EditEquipment" asp-route-slug="@Model.Equipment.Name" class="btn btn-sm btn-primary">
+                Modifier
+            </a>
+            <button type="button"
+                    class="btn btn-sm btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalDeleteEquip"
+                    data-equip-name="@Model.Equipment.Name"
+                    data-equip-kebab="@Model.Equipment.Name.ToKebabCase()"
+                    data-equip-slug="@Model.Equipment.Name.ToKebabCase()">
+                Supprimer
+            </button>
+            @if (Model.IsAdmin && !Model.Equipment.IsAvailable)
+            {
+                <form method="post" asp-page="/Equipments/Index" asp-page-handler="Validate"
+                      asp-route-slug="@Model.Equipment.Name.ToKebabCase()" class="d-inline ms-1">
+                    <button type="submit" class="btn btn-sm btn-success">Valider</button>
+                </form>
+            }
+        </div>
+        
+        <form id="delete-equip-@Model.Equipment.Name.ToKebabCase()"
+              method="post"
+              asp-page="/Equipments/Index"
+              asp-page-handler="Delete"
+              asp-route-slug="@Model.Equipment.Name.ToKebabCase()">
+        </form>
+    }
+</div>

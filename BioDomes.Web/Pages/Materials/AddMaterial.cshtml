@@ -1,0 +1,50 @@
+﻿@page
+@model AddMaterialModel
+@{
+    ViewData["Title"] = "Ajouter un matériel";
+}
+
+<div class="container py-4 d-flex justify-content-center">
+    <div class="card shadow-sm" style="max-width: 500px;">
+        <div class="card-body">
+
+            <h2 class="card-title mb-3">Ajouter un matériel</h2>
+
+            <form method="post">
+                <div class="mb-3">
+                    <label for="Name" class="form-label">Nom du matériel</label>
+                    <input type="text" id="Name" name="Name"
+                           value="@Model.Name"
+                           class="form-control"
+                           placeholder="e.g. CO2, Steam..." 
+                           autofocus/>
+                    <span asp-validation-for="@Model.Name" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-evenly">
+                    <a asp-page="/Index" class="btn btn-secondary">
+                        Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success ms-2">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
+            
+            <hr class="my-4" />
+
+            <h6 class="text-muted mb-2">Matériaux existants</h6>
+
+            <div class="d-flex flex-wrap gap-2 mt-2">
+            @foreach (var material in Model.Materials)
+            {
+                <span class="badge bg-light text-dark border">
+                    @material.Name
+                </span>
+            }
+        </div>
+
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,71 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<h3>@ViewData["Title"]</h3>
+<partial name="_StatusMessage" for="StatusMessage"/>
+<div class="row">
+    <div class="col-md-6">
+        <form id="profile-form" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Username" class="form-control" placeholder="Please choose your username."/>
+                <label asp-for="Input.Username" class="form-label"></label>
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
+                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.DateOfBirth" type="text" class="form-control" placeholder="AAAA-MM-JJ"/>
+                <label asp-for="Input.DateOfBirth" class="form-label"></label>
+                <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ResearchTeam" class="form-control" placeholder="Research team."/>
+                <label asp-for="Input.ResearchTeam" class="form-label"></label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Avatar</label>
+                <div class="mb-2">
+                    <img
+                        src="@Url.Content("~" + Model.Input.CurrentAvatarPath)"
+                        alt="Avatar actuel"
+                        style="max-height: 150px; object-fit: cover;"
+                        class="img-thumbnail" loading="lazy"/>
+                    <p class="text-muted small mt-1">Image actuelle — uploadez-en une nouvelle pour la remplacer.</p>
+                </div>
+                <input asp-for="Input.UserAvatarFile" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp"/>
+            </div>
+
+            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Sauvegarder</button>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <script>
+        flatpickr("#Input_DateOfBirth", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            minDate: "1900-01-01",
+            locale: "fr"
+        });
+    </script>
+}

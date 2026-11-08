@@ -1,0 +1,24 @@
+@page "/EditSpecies/{slug:kebab}"
+@model EditSpeciesModel
+@{
+    ViewData["Title"] = "Éditer une espèce";
+    ViewData["IsEdit"] = true;
+}
+
+@if (Model.ImpactedBiomes.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Attention: </strong>Cette espèce est assignée à
+        <strong>@Model.ImpactedBiomes.Count</strong> biome(s).
+        
+        <ul class="mb-0 mt-2">
+            @foreach (var biome in Model.ImpactedBiomes)
+            {
+                <li>
+                    @biome.BiomeName (@biome.PredationCount prédation(s) / @biome.PresenceCount individu(s))
+                </li>
+            }
+        </ul>
+    </div>
+}
+<partial name="_SpeciesInputCard" model="Model"/>

@@ -1,0 +1,136 @@
+﻿@page "/EditChain/{slug:kebab}"
+@using BioDomes.Domains
+@model EditChain
+
+
+<div class="text-center mb-4">
+    <h1 class="display-5">Prédation - @Model.Biome.Name</h1>
+    <a asp-page="./Index" class="btn btn-sm btn-secondary">← Liste biomes</a>
+    <a asp-page="./Dashboard" asp-route-slug="@Model.Slug" class="btn btn-sm btn-primary">Dashboard</a>
+    <a asp-page="./ManageSpecies" asp-route-slug="@Model.Slug" class="btn btn-sm btn-secondary">Gérer
+        espèces</a>
+</div>
+
+<div class="row g-3 align-items-center">
+
+    <!-- GRAPHE -->
+    <div class="col-lg-6">
+
+        <div class="card p-3">
+
+            <h5>Réseau trophique global</h5>
+
+            <div id="network-container"
+                 style="border: 1px solid #dee2e6;
+                        border-radius: 8px; background: #fafafa;">
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- EDITION -->
+    <div class="col-lg-6">
+        
+        <form method="get">
+
+            <input type="hidden" name="slug" value="@Model.Slug"/>
+
+            <select name="SelectedSpecies"
+                    class="form-select"
+                    onchange="this.form.submit()">
+
+                @foreach (var species in Model.SpeciesInBiome)
+                {
+                    <option value="@species.Name"
+                            selected="@(species.Name == Model.SelectedSpecies)">
+                        @species.Name
+                    </option>
+                }
+
+            </select>
+
+        </form>
+
+        <div class="sticky-top pt-3">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values
+                                  .SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+            <form method="post" asp-page-handler="UpdateSpeciesRelations">
+                <input type="hidden" name="SelectedSpecies" value="@Model.SelectedSpecies" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Prédateurs</label>
+                        <select name="predators" multiple class="form-select">
+                            @foreach (var s in Model.SpeciesInBiome)
+                            {
+                                if (s.Name.ToKebabCase() == Model.SelectedSpecies.ToKebabCase())
+                                    continue;
+
+                                var isSelected = Model.Biome.Predations
+                                    .Any(p => p.Prey.Name.ToKebabCase() == Model.SelectedSpecies.ToKebabCase() && p.Predator.Name.ToKebabCase() == s.Name.ToKebabCase());
+
+                                <option value="@s.Name" selected="@(isSelected ? "selected" : null)">
+                                    @s.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Proies</label>
+                        <select name="prey" multiple class="form-select">
+                            @foreach (var s in Model.SpeciesInBiome)
+                            {
+                                if (s.Name.ToKebabCase() == Model.SelectedSpecies.ToKebabCase())
+                                    continue;
+
+                                var isSelected = Model.Biome.Predations
+                                    .Any(p => p.Predator.Name.ToKebabCase() == Model.SelectedSpecies.ToKebabCase() && p.Prey.Name.ToKebabCase() == s.Name.ToKebabCase());
+
+                                <option value="@s.Name" selected="@(isSelected ? "selected" : null)">
+                                    @s.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-sm mt-2">Mettre à jour</button>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script>
+        window.BIOME_DATA = @Html.Raw(Model.BiomeDataJson);
+        window.SLUG = "@Model.Slug";
+    </script>
+    <script src="~/js/biome-network.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            initBiomeNetwork(window.BIOME_DATA, {
+                mode: 'edit',
+                selectedSpecies: '@Model.SelectedSpecies.ToKebabCase()',
+                onSelectSpecies: (name) => {
+                    window.location.href =
+                        `/EditChain/${window.SLUG}?SelectedSpecies=${name}`;
+                }
+            });
+
+        });
+    </script>
+}

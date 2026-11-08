@@ -1,0 +1,8 @@
+﻿@page "/EditBiome/{slug:kebab}"
+@model EditBiomeCommonModel
+@{
+    ViewData["Title"] = "Éditer un biome";
+    ViewData["IsEdit"] = true;
+}
+
+<partial name="_BiomeInputCard" model="Model"/>

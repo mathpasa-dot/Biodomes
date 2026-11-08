@@ -1,0 +1,153 @@
+@page
+@model ExploreModel
+
+@{
+    ViewData["Title"] = "Explorer les biomes";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/explore.css" />
+}
+
+<div class="text-center mb-3">
+    <h1 class="display-5">🌍 Explorer les biomes</h1>
+</div>
+
+<div class="card mb-4 p-3 shadow-sm">
+    <form method="get">
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold">Temp. min (°C)</label>
+                <input type="number" name="TempMin" value="@Model.TempMin"
+                       class="form-control form-control-sm" step="0.1"/>
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold">Temp. max (°C)</label>
+                <input type="number" name="TempMax" value="@Model.TempMax"
+                       class="form-control form-control-sm" step="0.1"/>
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold">Humidité min (g/m³)</label>
+                <input type="number" name="MoistureMin" value="@Model.MoistureMin"
+                       class="form-control form-control-sm" step="0.1"/>
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold">Humidité max (g/m³)</label>
+                <input type="number" name="MoistureMax" value="@Model.MoistureMax"
+                       class="form-control form-control-sm" step="0.1"/>
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold">Espèce</label>
+                <input type="text" name="Species" value="@Model.Species"
+                       class="form-control form-control-sm" placeholder="Nom partiel..."
+                       list="species-list"/>
+                <datalist id="species-list">
+                    @foreach (var s in Model.AllSpecies)
+                    {
+                        <option value="@s.Name"/>
+                    }
+                </datalist>
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold">Équipement</label>
+                <input type="text" name="Equipment" value="@Model.Equipment"
+                       class="form-control form-control-sm" placeholder="Nom partiel..."
+                       list="equipment-list"/>
+                <datalist id="equipment-list">
+                    @foreach (var e in Model.AllEquipments)
+                    {
+                        <option value="@e.Name"/>
+                    }
+                </datalist>
+            </div>
+        </div>
+        <div class="mt-2 d-flex gap-2">
+            <button type="submit" class="btn btn-sm btn-primary">Rechercher</button>
+            @if (Model.HasFilters)
+            {
+                <a asp-page="./Explore" class="btn btn-sm btn-outline-secondary">Réinitialiser</a>
+            }
+        </div>
+    </form>
+</div>
+
+@{
+    var results = Model.Biomes.ToList();
+}
+
+@if (Model.HasFilters)
+{
+    <p class="text-muted small mb-2">@results.Count biome(s) trouvé(s)</p>
+}
+
+@if (!results.Any())
+{
+    <div class="alert alert-info">Aucun biome ne correspond aux critères.</div>
+}
+else
+{
+    <!-- Carrousel -->
+    <div class="biome-carousel">
+        <div class="biome-carousel-track-outer">
+            <div class="biome-carousel-track" id="biomeTrack">
+                @foreach (var biome in results)
+                {
+                    <div class="biome-carousel-slide">
+                        <partial name="_BiomeCard" model="biome"/>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="biome-carousel-nav">
+            <div class="biome-carousel-arrows">
+                <button class="biome-carousel-btn" id="biomePrev" disabled>&#8592;</button>
+                <button class="biome-carousel-btn" id="biomeNext">&#8594;</button>
+            </div>
+            <div class="biome-carousel-dots" id="biomeDots"></div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const PER_PAGE = 3;
+            const track = document.getElementById('biomeTrack');
+            const dotsEl = document.getElementById('biomeDots');
+            const prevBtn = document.getElementById('biomePrev');
+            const nextBtn = document.getElementById('biomeNext');
+
+            if (!track) return;
+
+            const slides = track.querySelectorAll('.biome-carousel-slide');
+            const total = slides.length;
+            const pageCount = Math.ceil(total / PER_PAGE);
+            let page = 0;
+
+            // Créer les points
+            for (let i = 0; i < pageCount; i++) {
+                const d = document.createElement('div');
+                d.className = 'biome-dot' + (i === 0 ? ' active' : '');
+                dotsEl.appendChild(d);
+            }
+
+            function go(n) {
+                page = Math.max(0, Math.min(pageCount - 1, n));
+                const slideW = slides[0].offsetWidth + 16; // gap = 16px
+                track.style.transform = `translateX(-${page * PER_PAGE * slideW}px)`;
+                dotsEl.querySelectorAll('.biome-dot').forEach((d, i) =>
+                    d.classList.toggle('active', i === page)
+                );
+                prevBtn.disabled = page === 0;
+                nextBtn.disabled = page === pageCount - 1;
+            }
+
+            prevBtn.addEventListener('click', () => go(page - 1));
+            nextBtn.addEventListener('click', () => go(page + 1));
+
+            // Recalcul si redimensionnement
+            window.addEventListener('resize', () => go(page));
+        })();
+    </script>
+}
